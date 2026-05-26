@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL para o Ensino Médio 🗄️</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #185FA5; --blue-light: #E6F1FB; --blue-mid: #B5D4F4; --blue-dark: #0C447C;
+    --green-light: #E8F5E9; --green-dark: #1B5E20;
+    --red-light: #FCEBEB; --red-dark: #A32D2D;
+    --bg: #ffffff; --bg2: #f5f5f3; --bg3: #efefec;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --radius: 10px; --radius-sm: 7px;
+    --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'Menlo', 'Consolas', 'Courier New', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #252523; --bg3: #2c2c2a;
+      --text: #f0ede8; --text2: #b4b2a9; --text3: #888780;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --blue-light: #042c53; --green-light: #1b3a1c; --red-light: #501313; --red-dark: #f09595;
+    }
+  }
+  body { font-family: var(--font); background: var(--bg3); color: var(--text); min-height: 100vh; }
+  .shell { max-width: 680px; margin: 0 auto; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* HEADER */
+  .header { text-align: center; padding: 1.5rem 1rem 0.75rem; border-bottom: 0.5px solid var(--border); }
+  .header .ico { font-size: 44px; margin-bottom: 6px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+  /* PROGRESS */
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid var(--border); }
+  .pbwrap { flex: 1; background: var(--bg3); border-radius: 99px; height: 7px; overflow: hidden; }
+  .pbfill { background: var(--blue); height: 100%; border-radius: 99px; transition: width 0.5s ease; width: 0%; }
+  .xpp { background: var(--blue-light); color: var(--blue-dark); font-size: 12px; padding: 4px 11px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+  .pglbl { text-align: center; font-size: 12px; color: var(--text3); padding: 5px 16px 8px; }
+
+  /* MODULES */
+  .mods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 12px; border-bottom: 0.5px solid var(--border); }
+  .mc { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 8px; cursor: pointer; transition: all 0.15s; position: relative; text-align: center; user-select: none; }
+  .mc:hover:not(.lk) { border-color: var(--border2); background: var(--bg2); }
+  .mc.ac { border: 1.5px solid var(--blue); background: var(--blue-light); }
+  .mc.lk { opacity: 0.38; cursor: not-allowed; }
+  .mc .mi { font-size: 20px; margin-bottom: 3px; }
+  .mc .mt { font-size: 11px; font-weight: 600; color: var(--text); }
+  .mc .ms { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  .mb { position: absolute; top: 5px; right: 5px; font-size: 9px; padding: 2px 5px; border-radius: 99px; font-weight: 600; }
+  .mb.dn { background: var(--green-light); color: var(--green-dark); }
+  .mb.cu { background: var(--blue-mid); color: var(--blue-dark); }
+  .mb.lk { background: var(--bg2); color: var(--text3); }
+
+  /* LESSON */
+  .lesson { flex: 1; padding: 16px; }
+  .lesson h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+  .concept { font-size: 13.5px; color: var(--text2); line-height: 1.7; margin-bottom: 14px; }
+  .concept b { color: var(--text); }
+  .concept code { font-family: var(--mono); background: var(--bg2); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+
+  /* CODE */
+  .code-block { background: #1e1e1c; border-radius: var(--radius); padding: 14px 16px; font-family: var(--mono); font-size: 12.5px; color: #e8e5e0; margin-bottom: 12px; line-height: 1.8; overflow-x: auto; white-space: pre; }
+  .ck { color: #FAC775; } .cs { color: #F4C0D1; } .cf { color: #85B7EB; } .cn { color: #F0997B; } .cm { color: #5DCAA5; } .co { color: #9FE1CB; }
+
+  /* DB TABLE PREVIEW */
+  .db-preview { margin-bottom: 14px; }
+  .db-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .db-table { width: 100%; border-collapse: collapse; font-size: 12.5px; overflow-x: auto; display: block; }
+  .db-table th { background: var(--blue); color: var(--blue-light); padding: 6px 10px; text-align: left; font-weight: 600; font-size: 12px; white-space: nowrap; }
+  .db-table td { padding: 5px 10px; border-bottom: 0.5px solid var(--border); color: var(--text2); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .db-table tr:last-child td { border-bottom: none; }
+  .db-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* TRY IT */
+  .try-label { font-size: 12px; font-weight: 600; color: var(--text2); display: block; margin-bottom: 6px; }
+  textarea.try-code { width: 100%; font-family: var(--mono); font-size: 12.5px; background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 10px; color: var(--text); resize: vertical; min-height: 72px; outline: none; line-height: 1.7; }
+  textarea.try-code:focus { border-color: var(--blue); }
+  .run-btn { margin-top: 8px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); }
+  .run-btn:hover { background: var(--blue-dark); }
+  .out-wrap { margin-top: 10px; }
+  .out-lbl { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+  .out-table { width: 100%; border-collapse: collapse; font-size: 12.5px; display: block; overflow-x: auto; }
+  .out-table th { background: var(--blue-dark); color: var(--blue-mid); padding: 5px 10px; text-align: left; font-weight: 600; font-size: 12px; white-space: nowrap; }
+  .out-table td { padding: 5px 10px; border-bottom: 0.5px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .out-table tr:nth-child(even) td { background: var(--bg2); }
+  .out-ok { background: var(--green-light); color: var(--green-dark); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+  .out-err { background: var(--red-light); color: var(--red-dark); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; margin-top: 8px; }
+  .out-empty { font-size: 13px; color: var(--text2); padding: 8px 0; }
+
+  /* QUIZ */
+  .quiz-wrap { background: var(--bg2); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+  .quiz-q { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 12px; white-space: pre-line; font-family: var(--font); }
+  .qopts { display: flex; flex-direction: column; gap: 7px; }
+  .qopt { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 9px 13px; font-size: 13px; cursor: pointer; color: var(--text); text-align: left; transition: all 0.12s; font-family: var(--font); }
+  .qopt:hover:not(:disabled) { border-color: var(--blue); }
+  .qopt.correct { background: var(--green-light); border-color: #4CAF50; color: var(--green-dark); font-weight: 600; }
+  .qopt.wrong { background: var(--red-light); border-color: var(--red-dark); color: var(--red-dark); }
+  .qopt:disabled { cursor: default; }
+  .qfb { display: none; margin-top: 10px; padding: 9px 13px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5; }
+  .qfb.show { display: block; }
+  .qfb.ok { background: var(--green-light); color: var(--green-dark); }
+  .qfb.err { background: var(--red-light); color: var(--red-dark); }
+
+  /* NAV */
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 0.5px solid var(--border); }
+  .nav-btn { border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 9px 16px; font-size: 13px; cursor: pointer; background: var(--bg); color: var(--text); font-family: var(--font); display: inline-flex; align-items: center; gap: 5px; }
+  .nav-btn:hover { background: var(--bg2); }
+  .nav-btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+  .nav-btn.primary:hover { background: var(--blue-dark); }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .dots { display: flex; gap: 5px; align-items: center; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border2); }
+  .dot.ac { background: var(--blue); }
+  .dot.dn { background: var(--blue-mid); }
+
+  /* CONGRATS */
+  .congrats { text-align: center; padding: 2rem 1rem; }
+  .congrats .tr { font-size: 56px; margin-bottom: 14px; }
+  .congrats h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .congrats p { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
+  .badge-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0; }
+  .badge-i { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; color: var(--text2); }
+  .xpfin { font-size: 22px; font-weight: 700; color: var(--blue); margin: 10px 0; }
+
+  @media (max-width: 400px) {
+    .mods { grid-template-columns: repeat(2, 1fr); }
+    .lesson { padding: 12px; }
+    .header h1 { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="header">
+    <div class="ico">🗄️</div>
+    <h1>SQL para o Ensino Médio</h1>
+    <p>Aprenda banco de dados do zero com SQLite!</p>
+  </div>
+  <div class="topbar">
+    <div class="pbwrap"><div class="pbfill" id="pbfill"></div></div>
+    <div class="xpp" id="xpp">0 XP</div>
+  </div>
+  <div class="pglbl" id="pglbl">Módulo 1 de 6</div>
+  <div class="mods" id="modgrid"></div>
+  <div class="lesson" id="lesson"></div>
+</div>
+
+<script>
+const MODS=[
+{icon:"🗄️",title:"O que é SQL?",sub:"Conceitos iniciais",steps:[
+{type:"learn",h:"O que é um Banco de Dados?",
+c:`Um <b>banco de dados</b> é como uma coleção organizada de informações. Pense numa agenda de contatos: cada contato tem nome, telefone e e-mail. Um banco de dados armazena esses dados de forma estruturada para encontrar, adicionar e alterar informações facilmente.\n\nO <b>SQL</b> (Structured Query Language) é a linguagem que usamos para conversar com o banco de dados. O <b>SQLite</b> é um banco de dados leve, gratuito e perfeito para aprender!`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- Isto é um comentário — o SQL ignora!</span>\n<span class="cm">-- Para ver todos os dados da tabela:</span>\n\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos;`,
+tryCode:`SELECT * FROM alunos;`,tryLabel:"✏️ Execute a query e veja todos os alunos:"},
+{type:"quiz",h:"Quiz 🧠",q:"O que é SQL?",
+opts:["Um tipo de banco de dados","Uma linguagem para consultar e manipular banco de dados","Um programa para criar tabelas","Um sistema operacional"],
+correct:1,ok:"✅ Isso! SQL é uma linguagem — usamos ela para dar comandos ao banco de dados.",err:"SQL é uma linguagem (Structured Query Language) usada para interagir com bancos de dados."},
+{type:"learn",h:"Tabelas, colunas e linhas",
+c:`Um banco de dados é composto por <b>tabelas</b>. Cada tabela tem:\n\n• <b>Colunas</b> (campos): definem o tipo de informação (nome, idade, cidade...)\n• <b>Linhas</b> (registros): cada linha é um item armazenado\n• <b>Chave primária (id)</b>: identifica cada linha de forma única`,
+tables:[{name:"produtos",cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}],
+code:`<span class="cm">-- Tabela tem colunas (campos) e linhas (registros)</span>\n<span class="cm">-- id = chave primária (identificador único)</span>\n\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> produtos;`,
+tryCode:`SELECT * FROM produtos;`,tryLabel:"✏️ Veja todos os produtos:"},
+{type:"quiz",h:"Quiz 🧠",q:"O que é uma chave primária em uma tabela?",
+opts:["A primeira coluna da tabela","Um identificador único para cada linha","O nome da tabela","A senha do banco de dados"],
+correct:1,ok:"✅ Exato! A chave primária (geralmente chamada 'id') identifica cada registro de forma única.",err:"A chave primária é um valor único que identifica cada linha da tabela — geralmente chamado 'id'."}
+]},
+{icon:"🔍",title:"SELECT",sub:"Consultando dados",steps:[
+{type:"learn",h:"SELECT: buscando dados",
+c:`O comando <b>SELECT</b> é o mais usado em SQL. Ele busca dados da tabela. Use <b>*</b> para trazer todas as colunas ou liste os nomes das colunas que você quer ver.`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- Trazer todas as colunas</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos;\n\n<span class="cm">-- Trazer apenas nome e cidade</span>\n<span class="ck">SELECT</span> nome, cidade <span class="ck">FROM</span> alunos;`,
+tryCode:`SELECT nome, cidade FROM alunos;`,tryLabel:"✏️ Mostre apenas o nome e a idade dos alunos:"},
+{type:"quiz",h:"Quiz 🧠",q:"Qual query traz apenas a coluna 'nome' da tabela 'alunos'?",
+opts:["GET nome FROM alunos;","SELECT * FROM alunos;","SELECT nome FROM alunos;","SHOW nome IN alunos;"],
+correct:2,ok:"✅ Perfeito! SELECT nome FROM alunos; traz apenas a coluna nome.",err:"A sintaxe correta é SELECT coluna FROM tabela; — no caso: SELECT nome FROM alunos;"},
+{type:"learn",h:"WHERE: filtrando resultados",
+c:`O <b>WHERE</b> filtra os resultados. Só retorna as linhas que satisfazem a condição. Use operadores como <b>=</b>, <b>></b>, <b>&lt;</b>, <b>>=</b>, <b>&lt;=</b> e <b>!=</b> (diferente).`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- Alunos de São Paulo</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos\n<span class="ck">WHERE</span> cidade = <span class="cs">'São Paulo'</span>;\n\n<span class="cm">-- Alunos com mais de 15 anos</span>\n<span class="ck">SELECT</span> nome, idade <span class="ck">FROM</span> alunos\n<span class="ck">WHERE</span> idade > <span class="cn">15</span>;`,
+tryCode:`SELECT * FROM alunos\nWHERE cidade = 'São Paulo';`,tryLabel:"✏️ Busque alunos com idade maior que 15:"},
+{type:"quiz",h:"Quiz 🧠",q:"Qual query retorna produtos com preço menor que 100?",
+opts:["SELECT * FROM produtos WHERE preco < 100;","SELECT * FROM produtos IF preco < 100;","SELECT preco < 100 FROM produtos;","FILTER produtos WHERE preco < 100;"],
+correct:0,ok:"✅ Isso! WHERE preco < 100 filtra apenas os registros com preço abaixo de 100.",err:"A sintaxe correta é SELECT ... FROM tabela WHERE condição; — use WHERE, não IF ou FILTER."},
+{type:"learn",h:"ORDER BY e LIMIT",
+c:`<b>ORDER BY</b> ordena os resultados por uma coluna. Use <b>ASC</b> para crescente (padrão) e <b>DESC</b> para decrescente. <b>LIMIT</b> limita quantas linhas aparecem.`,
+tables:[{name:"produtos",cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}],
+code:`<span class="cm">-- Do mais caro para o mais barato</span>\n<span class="ck">SELECT</span> nome, preco <span class="ck">FROM</span> produtos\n<span class="ck">ORDER BY</span> preco <span class="ck">DESC</span>;\n\n<span class="cm">-- Os 3 mais baratos</span>\n<span class="ck">SELECT</span> nome, preco <span class="ck">FROM</span> produtos\n<span class="ck">ORDER BY</span> preco <span class="ck">ASC</span>\n<span class="ck">LIMIT</span> <span class="cn">3</span>;`,
+tryCode:`SELECT nome, preco FROM produtos\nORDER BY preco DESC;`,tryLabel:"✏️ Mostre os 2 produtos mais caros:"}
+]},
+{icon:"🔧",title:"WHERE Avançado",sub:"AND, OR, LIKE, BETWEEN",steps:[
+{type:"learn",h:"AND e OR: combinando condições",
+c:`Combine condições com <b>AND</b> (ambas verdadeiras) e <b>OR</b> (pelo menos uma verdadeira). Funciona igual ao que você aprendeu em Python!`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- Alunos de SP com 16 anos</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos\n<span class="ck">WHERE</span> cidade = <span class="cs">'São Paulo'</span> <span class="ck">AND</span> idade = <span class="cn">16</span>;\n\n<span class="cm">-- Alunos de SP ou com 17 anos</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos\n<span class="ck">WHERE</span> cidade = <span class="cs">'São Paulo'</span> <span class="ck">OR</span> idade = <span class="cn">17</span>;`,
+tryCode:`SELECT * FROM alunos\nWHERE cidade = 'São Paulo' AND idade = 16;`,tryLabel:"✏️ Busque alunos de Campinas OU com idade 15:"},
+{type:"quiz",h:"Quiz 🧠",q:"Quantos resultados a query abaixo retorna?\n\nSELECT * FROM alunos\nWHERE cidade = 'Santos' OR idade = 17;",
+opts:["1","2","3","4"],
+correct:1,ok:"✅ Isso! Maria (Santos) e Carlos (17 anos) — 2 resultados.",err:"Santos = Maria (1 resultado). Idade 17 = Carlos (1 resultado). Total = 2 resultados."},
+{type:"learn",h:"LIKE: buscando por texto parcial",
+c:`O <b>LIKE</b> busca por padrão em textos. Use <b>%</b> como coringa que substitui qualquer texto. <b>'A%'</b> começa com A, <b>'%a'</b> termina com a, <b>'%ar%'</b> contém "ar".`,
+tables:[{name:"produtos",cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}],
+code:`<span class="cm">-- Produtos que começam com 'M'</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> produtos\n<span class="ck">WHERE</span> nome <span class="ck">LIKE</span> <span class="cs">'M%'</span>;\n\n<span class="cm">-- Produtos que contêm 'ado'</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> produtos\n<span class="ck">WHERE</span> nome <span class="ck">LIKE</span> <span class="cs">'%ado%'</span>;`,
+tryCode:`SELECT * FROM produtos\nWHERE nome LIKE 'M%';`,tryLabel:"✏️ Busque produtos que contêm a letra 'e':"},
+{type:"quiz",h:"Quiz 🧠",q:"O que a query abaixo retorna?\n\nSELECT * FROM produtos WHERE nome LIKE '%a';",
+opts:["Produtos que contêm a letra 'a'","Produtos cujo nome termina com a letra 'a'","Produtos cujo nome começa com 'a'","Nenhum resultado"],
+correct:1,ok:"✅ Certo! '%a' significa qualquer coisa + termina com 'a'. Retorna: Mesa, Cadeira.",err:"'%a' significa qualquer coisa antes + termina com 'a'. O % no início indica que pode haver qualquer texto antes."},
+{type:"learn",h:"BETWEEN e IN",
+c:`<b>BETWEEN</b> filtra valores em um intervalo (inclusivo). <b>IN</b> verifica se o valor está em uma lista. Ambos deixam a query mais legível que vários OR.`,
+tables:[{name:"produtos",cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}],
+code:`<span class="cm">-- Preço entre 100 e 500</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> produtos\n<span class="ck">WHERE</span> preco <span class="ck">BETWEEN</span> <span class="cn">100</span> <span class="ck">AND</span> <span class="cn">500</span>;\n\n<span class="cm">-- Apenas Eletrônicos ou Móveis</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> produtos\n<span class="ck">WHERE</span> categoria <span class="ck">IN</span> (<span class="cs">'Eletrônicos'</span>, <span class="cs">'Móveis'</span>);`,
+tryCode:`SELECT * FROM produtos\nWHERE preco BETWEEN 100 AND 500;`,tryLabel:"✏️ Busque produtos entre R$ 40 e R$ 200:"}
+]},
+{icon:"ƒ",title:"Funções SQL",sub:"COUNT, SUM, AVG, MAX, MIN",steps:[
+{type:"learn",h:"Funções de agregação",
+c:`As <b>funções de agregação</b> calculam valores a partir de múltiplas linhas:\n\n• <b>COUNT()</b> — conta registros\n• <b>SUM()</b> — soma valores\n• <b>AVG()</b> — calcula a média\n• <b>MAX()</b> e <b>MIN()</b> — maior e menor valor`,
+tables:[{name:"produtos",cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}],
+code:`<span class="ck">SELECT</span> <span class="cf">COUNT</span>(*) <span class="ck">FROM</span> produtos;    <span class="cm">-- 5</span>\n<span class="ck">SELECT</span> <span class="cf">SUM</span>(preco) <span class="ck">FROM</span> produtos;  <span class="cm">-- 3495.00</span>\n<span class="ck">SELECT</span> <span class="cf">AVG</span>(preco) <span class="ck">FROM</span> produtos;  <span class="cm">-- 699.00</span>\n<span class="ck">SELECT</span> <span class="cf">MAX</span>(preco) <span class="ck">FROM</span> produtos;  <span class="cm">-- 2500.00</span>\n<span class="ck">SELECT</span> <span class="cf">MIN</span>(preco) <span class="ck">FROM</span> produtos;  <span class="cm">-- 45.00</span>`,
+tryCode:`SELECT COUNT(*) FROM produtos;`,tryLabel:"✏️ Calcule a média de preços dos produtos:"},
+{type:"quiz",h:"Quiz 🧠",q:"Qual função SQL conta o número de linhas de uma tabela?",
+opts:["SUM(*)","TOTAL(*)","COUNT(*)","LEN(*)"],
+correct:2,ok:"✅ Isso! COUNT(*) conta todas as linhas da tabela.",err:"A função correta é COUNT(*). SUM() soma valores numéricos, não conta linhas."},
+{type:"learn",h:"GROUP BY: agrupando resultados",
+c:`O <b>GROUP BY</b> agrupa linhas com o mesmo valor em uma coluna. É sempre usado junto com funções de agregação. Permite responder: "quantos produtos existem em cada categoria?"`,
+tables:[{name:"produtos",cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}],
+code:`<span class="cm">-- Quantos produtos por categoria?</span>\n<span class="ck">SELECT</span> categoria, <span class="cf">COUNT</span>(*) <span class="ck">AS</span> total\n<span class="ck">FROM</span> produtos\n<span class="ck">GROUP BY</span> categoria;\n\n<span class="cm">-- Preço médio por categoria</span>\n<span class="ck">SELECT</span> categoria, <span class="cf">AVG</span>(preco) <span class="ck">AS</span> media\n<span class="ck">FROM</span> produtos\n<span class="ck">GROUP BY</span> categoria;`,
+tryCode:`SELECT categoria, COUNT(*) AS total\nFROM produtos\nGROUP BY categoria;`,tryLabel:"✏️ Calcule o preço máximo por categoria:"},
+{type:"quiz",h:"Quiz 🧠",q:"Para que serve o GROUP BY?",
+opts:["Ordenar os resultados","Agrupar linhas com o mesmo valor em uma coluna","Filtrar resultados","Limitar o número de linhas"],
+correct:1,ok:"✅ Correto! GROUP BY agrupa linhas com o mesmo valor — sempre usado com funções de agregação.",err:"GROUP BY agrupa linhas com o mesmo valor numa coluna. ORDER BY é para ordenar, WHERE para filtrar."}
+]},
+{icon:"✏️",title:"INSERT e UPDATE",sub:"Inserindo e atualizando",steps:[
+{type:"learn",h:"INSERT: adicionando dados",
+c:`O <b>INSERT INTO</b> adiciona novos registros na tabela. Você informa as colunas e os valores correspondentes. A ordem dos valores deve bater com a ordem das colunas.`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- Adicionando um novo aluno</span>\n<span class="ck">INSERT INTO</span> alunos (id, nome, idade, cidade)\n<span class="ck">VALUES</span> (<span class="cn">5</span>, <span class="cs">'Lucas'</span>, <span class="cn">16</span>, <span class="cs">'Sorocaba'</span>);\n\n<span class="cm">-- Verificando o resultado</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos;`,
+tryCode:`INSERT INTO alunos (id, nome, idade, cidade)\nVALUES (5, 'Lucas', 16, 'Sorocaba');\n\nSELECT * FROM alunos;`,tryLabel:"✏️ Insira um novo aluno com seus dados:"},
+{type:"quiz",h:"Quiz 🧠",q:"Qual é a sintaxe correta para inserir dados em SQL?",
+opts:["ADD INTO tabela VALUES (...)","INSERT tabela (colunas) VALUES (...)","INSERT INTO tabela (colunas) VALUES (...)","PUT INTO tabela VALUES (...)"],
+correct:2,ok:"✅ Isso! INSERT INTO tabela (colunas) VALUES (valores) é a sintaxe correta.",err:"A sintaxe correta é INSERT INTO tabela (colunas) VALUES (valores). Não esqueça o INTO!"},
+{type:"learn",h:"UPDATE: atualizando dados",
+c:`O <b>UPDATE</b> altera registros existentes. <b>SEMPRE</b> use o <b>WHERE</b> para especificar quais linhas alterar — sem o WHERE, todos os registros da tabela serão modificados!`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- ⚠️ SEMPRE use WHERE no UPDATE!</span>\n\n<span class="cm">-- Atualiza a cidade da Ana (id=1)</span>\n<span class="ck">UPDATE</span> alunos\n<span class="ck">SET</span> cidade = <span class="cs">'Rio de Janeiro'</span>\n<span class="ck">WHERE</span> id = <span class="cn">1</span>;\n\n<span class="cm">-- Atualiza dois campos de uma vez</span>\n<span class="ck">UPDATE</span> alunos\n<span class="ck">SET</span> idade = <span class="cn">18</span>, cidade = <span class="cs">'Campinas'</span>\n<span class="ck">WHERE</span> id = <span class="cn">2</span>;`,
+tryCode:`UPDATE alunos\nSET cidade = 'Rio de Janeiro'\nWHERE id = 1;\n\nSELECT * FROM alunos;`,tryLabel:"✏️ Atualize a cidade da Maria para 'Guarujá':"},
+{type:"quiz",h:"Quiz 🧠",q:"Por que é essencial usar WHERE no UPDATE?",
+opts:["Para o comando funcionar","Sem WHERE todos os registros da tabela são alterados","Para deixar a query mais rápida","É opcional, não faz diferença"],
+correct:1,ok:"✅ Exato! Sem WHERE, o UPDATE altera TODOS os registros — um erro clássico e perigoso!",err:"Sem WHERE, o UPDATE altera todos os registros da tabela — um erro gravíssimo em sistemas reais!"}
+]},
+{icon:"🗑️",title:"DELETE e CREATE",sub:"Removendo e criando",steps:[
+{type:"learn",h:"DELETE: removendo dados",
+c:`O <b>DELETE</b> remove registros da tabela. Assim como o UPDATE, <b>sempre use WHERE</b> para especificar quais linhas remover. Sem WHERE, todos os dados da tabela são apagados!`,
+tables:[{name:"alunos",cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]}],
+code:`<span class="cm">-- Remove o aluno com id=4</span>\n<span class="ck">DELETE FROM</span> alunos\n<span class="ck">WHERE</span> id = <span class="cn">4</span>;\n\n<span class="cm">-- Remove todos os alunos de Santos</span>\n<span class="ck">DELETE FROM</span> alunos\n<span class="ck">WHERE</span> cidade = <span class="cs">'Santos'</span>;\n\n<span class="cm">-- Verifica resultado</span>\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> alunos;`,
+tryCode:`DELETE FROM alunos\nWHERE id = 4;\n\nSELECT * FROM alunos;`,tryLabel:"✏️ Remova o aluno com id=2 e verifique:"},
+{type:"quiz",h:"Quiz 🧠",q:"O que acontece se você executar DELETE FROM alunos; sem WHERE?",
+opts:["Apaga apenas o primeiro registro","Dá um erro de sintaxe","Apaga todos os registros da tabela","Não faz nada"],
+correct:2,ok:"✅ Isso! DELETE sem WHERE apaga TUDO. Sempre use WHERE para especificar o que remover.",err:"DELETE sem WHERE apaga TODOS os registros. É um dos erros mais perigosos em SQL!"},
+{type:"learn",h:"CREATE TABLE: criando tabelas",
+c:`O <b>CREATE TABLE</b> cria uma nova tabela. Você define o nome de cada coluna e seu <b>tipo de dado</b>: <b>INTEGER</b> (número inteiro), <b>TEXT</b> (texto), <b>REAL</b> (decimal). <b>PRIMARY KEY</b> define a chave primária e <b>NOT NULL</b> torna o campo obrigatório.`,
+tables:[],
+code:`<span class="cm">-- Criando uma tabela de cursos</span>\n<span class="ck">CREATE TABLE</span> cursos (\n    id     <span class="co">INTEGER</span> <span class="ck">PRIMARY KEY</span>,\n    nome   <span class="co">TEXT</span>    <span class="ck">NOT NULL</span>,\n    carga  <span class="co">INTEGER</span>,\n    preco  <span class="co">REAL</span>\n);\n\n<span class="ck">INSERT INTO</span> cursos <span class="ck">VALUES</span> (<span class="cn">1</span>, <span class="cs">'Python'</span>, <span class="cn">40</span>, <span class="cn">0.00</span>);\n<span class="ck">INSERT INTO</span> cursos <span class="ck">VALUES</span> (<span class="cn">2</span>, <span class="cs">'SQL'</span>, <span class="cn">30</span>, <span class="cn">0.00</span>);\n<span class="ck">SELECT</span> * <span class="ck">FROM</span> cursos;`,
+tryCode:`CREATE TABLE cursos (\n    id    INTEGER PRIMARY KEY,\n    nome  TEXT NOT NULL,\n    carga INTEGER\n);\n\nINSERT INTO cursos VALUES (1, 'Python', 40);\nINSERT INTO cursos VALUES (2, 'SQL', 30);\nSELECT * FROM cursos;`,tryLabel:"✏️ Crie uma tabela de cursos e insira 2 registros:"},
+{type:"quiz",h:"Quiz 🧠",q:"Qual tipo de dado SQL usamos para armazenar texto no SQLite?",
+opts:["STRING","VARCHAR","TEXT","CHAR"],
+correct:2,ok:"✅ Correto! No SQLite usamos TEXT para armazenar texto. Outros bancos usam VARCHAR, mas TEXT é o padrão do SQLite.",err:"No SQLite o tipo para texto é TEXT. Outros SGBDs usam VARCHAR, mas no SQLite TEXT é o padrão."}
+]}
+];
+
+const DBS={
+  alunos:{cols:["id","nome","idade","cidade"],rows:[["1","Ana","16","São Paulo"],["2","Carlos","17","Campinas"],["3","Maria","15","Santos"],["4","Pedro","16","São Paulo"]]},
+  produtos:{cols:["id","nome","preco","categoria"],rows:[["1","Notebook","2500.00","Eletrônicos"],["2","Mouse","45.00","Eletrônicos"],["3","Cadeira","350.00","Móveis"],["4","Mesa","480.00","Móveis"],["5","Teclado","120.00","Eletrônicos"]]}
+};
+
+let curMod=0,curStep=0,quizAnswered=false,xp=0;
+const completed=new Set(),modProg=Array(MODS.length).fill(0);
+const totalSteps=MODS.reduce((s,m)=>s+m.steps.length,0);
+function doneSteps(){let s=0;for(let i=0;i<MODS.length;i++)s+=modProg[i];return s;}
+
+function renderMods(){
+  document.getElementById("modgrid").innerHTML=MODS.map((m,i)=>{
+    const done=completed.has(i),active=i===curMod,locked=i>0&&!completed.has(i-1)&&!active&&!done;
+    return`<div class="mc${active?" ac":""}${locked?" lk":""}" onclick="goMod(${i})">
+      <div class="mb ${done?"dn":active?"cu":"lk"}">${done?"✓":active?"Atual":"🔒"}</div>
+      <div class="mi">${m.icon}</div><div class="mt">${m.title}</div><div class="ms">${m.sub}</div></div>`;
+  }).join("");
+}
+
+function renderProgress(){
+  const pct=Math.round(doneSteps()/totalSteps*100);
+  document.getElementById("pbfill").style.width=pct+"%";
+  document.getElementById("xpp").textContent=xp+" XP";
+  document.getElementById("pglbl").textContent=`Módulo ${curMod+1} de ${MODS.length} · Passo ${curStep+1} de ${MODS[curMod].steps.length}`;
+}
+
+function dots(){
+  return`<div class="dots">${MODS[curMod].steps.map((_,i)=>`<div class="dot${i===curStep?" ac":i<curStep?" dn":""}"></div>`).join("")}</div>`;
+}
+
+function tableHTML(t){
+  return`<div class="db-preview">
+    <div class="db-title">🗂️ Tabela: ${t.name}</div>
+    <table class="db-table"><thead><tr>${t.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
+    <tbody>${t.rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+function renderStep(){
+  quizAnswered=false;
+  const step=MODS[curMod].steps[curStep];
+  const la=document.getElementById("lesson");
+  const prevDis=(curMod===0&&curStep===0)?"disabled":"";
+  const prev=`<button class="nav-btn" onclick="prevStep()" ${prevDis}>← Anterior</button>`;
+  const next=`<button class="nav-btn primary" id="nbtn" onclick="nextStep()">Próximo →</button>`;
+
+  if(step.type==="learn"){
+    const tbls=(step.tables||[]).map(t=>tableHTML(t)).join("");
+    la.innerHTML=`<h2>${step.h}</h2>
+<div class="concept">${step.c}</div>
+${tbls}
+<div class="code-block">${step.code}</div>
+<div><span class="try-label">${step.tryLabel}</span>
+<textarea class="try-code" id="trycode">${step.tryCode}</textarea>
+<button class="run-btn" onclick="runSQL()">▶ Executar</button>
+<div id="outbox"></div></div>
+<div class="nav-row">${prev}${dots()}${next}</div>`;
+  } else {
+    const opts=step.opts.map((o,i)=>`<button class="qopt" id="qo${i}" onclick="answerQuiz(${i})">${o}</button>`).join("");
+    la.innerHTML=`<h2>${step.h}</h2>
+<div class="quiz-wrap"><div class="quiz-q">${step.q}</div>
+<div class="qopts">${opts}</div>
+<div class="qfb" id="qfb"></div></div>
+<div class="nav-row">${prev}${dots()}<button class="nav-btn primary" id="nbtn" onclick="nextStep()" style="display:none">Continuar →</button></div>`;
+  }
+  renderProgress();renderMods();
+}
+
+function runSQL(){
+  const raw=document.getElementById("trycode").value.trim();
+  const box=document.getElementById("outbox");
+  const stmts=raw.split(";").map(s=>s.trim()).filter(s=>s.length>0);
+  const sessionDB={};
+  Object.keys(DBS).forEach(k=>{sessionDB[k]={cols:[...DBS[k].cols],rows:DBS[k].rows.map(r=>[...r])};});
+  let lastResult=null,lastWasSelect=false;
+  try{
+    for(const stmt of stmts){
+      const up=stmt.toUpperCase().trim();
+      if(up.startsWith("SELECT")){lastResult=execSelect(stmt,sessionDB);lastWasSelect=true;}
+      else if(up.startsWith("INSERT")){execInsert(stmt,sessionDB);lastResult=null;lastWasSelect=false;}
+      else if(up.startsWith("UPDATE")){execUpdate(stmt,sessionDB);lastResult=null;lastWasSelect=false;}
+      else if(up.startsWith("DELETE")){execDelete(stmt,sessionDB);lastResult=null;lastWasSelect=false;}
+      else if(up.startsWith("CREATE TABLE")){execCreate(stmt,sessionDB);lastResult=null;lastWasSelect=false;}
+    }
+    if(lastResult&&lastWasSelect){
+      if(lastResult.rows.length===0){box.innerHTML=`<div class="out-empty">Nenhum registro encontrado.</div>`;return;}
+      box.innerHTML=`<div class="out-wrap"><div class="out-lbl">Resultado — ${lastResult.rows.length} linha(s)</div>
+        <table class="out-table"><thead><tr>${lastResult.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
+        <tbody>${lastResult.rows.map(r=>`<tr>${r.map(v=>`<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    } else {
+      box.innerHTML=`<div class="out-ok">✓ Comando(s) executado(s) com sucesso! Use SELECT para ver os dados.</div>`;
+    }
+  }catch(e){box.innerHTML=`<div class="out-err">⚠️ Erro: ${e.message}</div>`;}
+}
+
+function execSelect(stmt,db){
+  let s=stmt.trim();
+  const limitM=s.match(/LIMIT\s+(\d+)/i);
+  const limitN=limitM?parseInt(limitM[1]):null;
+  if(limitM)s=s.replace(/LIMIT\s+\d+/i,"").trim();
+  const orderM=s.match(/ORDER\s+BY\s+(\w+)(?:\s+(ASC|DESC))?/i);
+  let orderCol=null,orderDir="ASC";
+  if(orderM){orderCol=orderM[1];orderDir=(orderM[2]||"ASC").toUpperCase();s=s.replace(/ORDER\s+BY\s+\w+(?:\s+(?:ASC|DESC))?/i,"").trim();}
+  const groupM=s.match(/GROUP\s+BY\s+(\w+)/i);
+  let groupCol=null;
+  if(groupM){groupCol=groupM[1];s=s.replace(/GROUP\s+BY\s+\w+/i,"").trim();}
+  const whereM=s.match(/WHERE\s+(.+?)(?=ORDER|GROUP|LIMIT|$)/is);
+  let whereClause=whereM?whereM[1].trim():null;
+  if(whereClause)s=s.replace(/WHERE\s+.+/is,"").trim();
+  const fromM=s.match(/FROM\s+(\w+)/i);
+  if(!fromM)throw new Error("Faltou FROM na query");
+  const tname=fromM[1].toLowerCase();
+  if(!db[tname])throw new Error(`Tabela '${tname}' não existe`);
+  const tbl=db[tname];
+  const selM=s.match(/SELECT\s+(.+?)\s+FROM/i);
+  const selRaw=selM?selM[1].trim():"*";
+  let rows=[...tbl.rows];
+  if(whereClause)rows=rows.filter(r=>evalWhere(whereClause,tbl.cols,r));
+  if(groupCol){
+    const gi=tbl.cols.findIndex(c=>c.toLowerCase()===groupCol.toLowerCase());
+    if(gi<0)throw new Error(`Coluna '${groupCol}' não encontrada`);
+    const groups={};
+    rows.forEach(r=>{const k=r[gi];if(!groups[k])groups[k]=[];groups[k].push(r);});
+    const selParts=selRaw.split(",").map(p=>p.trim());
+    const outCols=[],outRows=[];
+    Object.keys(groups).forEach(k=>{
+      const grp=groups[k],row=[];
+      selParts.forEach(p=>{
+        const aggM=p.match(/^(COUNT|SUM|AVG|MAX|MIN)\(\s*(\*|\w+)\s*\)(?:\s+AS\s+(\w+))?/i);
+        if(aggM){
+          const fn=aggM[1].toUpperCase(),col=aggM[2],alias=aggM[3]||(fn+"("+col+")");
+          if(!outCols.includes(alias))outCols.push(alias);
+          const ci=tbl.cols.findIndex(c=>c.toLowerCase()===col.toLowerCase());
+          const vals=grp.map(r=>parseFloat(r[ci])).filter(v=>!isNaN(v));
+          if(fn==="COUNT")row.push(grp.length);
+          else if(fn==="SUM")row.push(vals.reduce((a,b)=>a+b,0).toFixed(2));
+          else if(fn==="AVG")row.push((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2));
+          else if(fn==="MAX")row.push(Math.max(...vals));
+          else if(fn==="MIN")row.push(Math.min(...vals));
+        } else {
+          if(!outCols.includes(p))outCols.push(p);
+          const ci=tbl.cols.findIndex(c=>c.toLowerCase()===p.toLowerCase());
+          row.push(ci>=0?grp[0][ci]:p);
+        }
+      });
+      outRows.push(row);
+    });
+    return{cols:outCols,rows:outRows};
+  }
+  const selParts=selRaw.split(",").map(p=>p.trim());
+  const aggMode=selParts.some(p=>/^(COUNT|SUM|AVG|MAX|MIN)\(/i.test(p));
+  if(aggMode){
+    const outCols=[],row=[];
+    selParts.forEach(p=>{
+      const aggM=p.match(/^(COUNT|SUM|AVG|MAX|MIN)\(\s*(\*|\w+)\s*\)(?:\s+AS\s+(\w+))?/i);
+      if(aggM){
+        const fn=aggM[1].toUpperCase(),col=aggM[2],alias=aggM[3]||(fn+"("+col+")");
+        outCols.push(alias);
+        if(fn==="COUNT"){row.push(rows.length);}
+        else{
+          const ci=tbl.cols.findIndex(c=>c.toLowerCase()===col.toLowerCase());
+          const vals=rows.map(r=>parseFloat(r[ci])).filter(v=>!isNaN(v));
+          if(fn==="SUM")row.push(vals.reduce((a,b)=>a+b,0).toFixed(2));
+          else if(fn==="AVG")row.push((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2));
+          else if(fn==="MAX")row.push(Math.max(...vals));
+          else if(fn==="MIN")row.push(Math.min(...vals));
+        }
+      }
+    });
+    return{cols:outCols,rows:[row]};
+  }
+  const outCols=[],outIdxs=[];
+  if(selRaw==="*"){outCols.push(...tbl.cols);tbl.cols.forEach((_,i)=>outIdxs.push(i));}
+  else{
+    selParts.forEach(p=>{
+      const ci=tbl.cols.findIndex(c=>c.toLowerCase()===p.toLowerCase());
+      if(ci<0)throw new Error(`Coluna '${p}' não encontrada`);
+      outCols.push(tbl.cols[ci]);outIdxs.push(ci);
+    });
+  }
+  let outRows=rows.map(r=>outIdxs.map(i=>r[i]));
+  if(orderCol){
+    const oi=outCols.findIndex(c=>c.toLowerCase()===orderCol.toLowerCase());
+    if(oi>=0)outRows.sort((a,b)=>{const av=isNaN(a[oi])?a[oi]:parseFloat(a[oi]),bv=isNaN(b[oi])?b[oi]:parseFloat(b[oi]);return orderDir==="ASC"?(av>bv?1:-1):(av<bv?1:-1);});
+  }
+  if(limitN!==null)outRows=outRows.slice(0,limitN);
+  return{cols:outCols,rows:outRows};
+}
+
+function evalWhere(clause,cols,row){
+  clause=clause.trim();
+  const andParts=clause.split(/\bAND\b/i);
+  if(andParts.length>1)return andParts.every(p=>evalWhere(p,cols,row));
+  const orParts=clause.split(/\bOR\b/i);
+  if(orParts.length>1)return orParts.some(p=>evalWhere(p,cols,row));
+  const betM=clause.match(/(\w+)\s+BETWEEN\s+(.+?)\s+AND\s+(.+)/i);
+  if(betM){const ci=cols.findIndex(c=>c.toLowerCase()===betM[1].toLowerCase());const v=parseFloat(row[ci]);return v>=parseFloat(betM[2])&&v<=parseFloat(betM[3]);}
+  const inM=clause.match(/(\w+)\s+IN\s*\((.+)\)/i);
+  if(inM){const ci=cols.findIndex(c=>c.toLowerCase()===inM[1].toLowerCase());const vals=inM[2].split(",").map(v=>v.trim().replace(/^['"]|['"]$/g,""));return vals.includes(row[ci]);}
+  const likeM=clause.match(/(\w+)\s+LIKE\s+['"](.+)['"]/i);
+  if(likeM){const ci=cols.findIndex(c=>c.toLowerCase()===likeM[1].toLowerCase());const pat=likeM[2].replace(/%/g,".*").replace(/_/g,".");return new RegExp("^"+pat+"$","i").test(row[ci]||"");}
+  const cmpM=clause.match(/(\w+)\s*(>=|<=|!=|<>|=|>|<)\s*['"]?([^'"]+)['"]?/);
+  if(cmpM){
+    const ci=cols.findIndex(c=>c.toLowerCase()===cmpM[1].toLowerCase());
+    const rv=row[ci],cv=cmpM[3].trim(),op=cmpM[2];
+    const nrv=parseFloat(rv),ncv=parseFloat(cv);
+    const useNum=!isNaN(nrv)&&!isNaN(ncv);
+    const a=useNum?nrv:rv,b=useNum?ncv:cv;
+    if(op==="=")return a==b;if(op==="!="||op==="<>")return a!=b;
+    if(op===">")return a>b;if(op==="<")return a<b;
+    if(op===">=")return a>=b;if(op==="<=")return a<=b;
+  }
+  return true;
+}
+
+function execInsert(stmt,db){
+  const m=stmt.match(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s*\(([^)]+)\)/i);
+  if(!m)throw new Error("Sintaxe INSERT inválida. Use: INSERT INTO tabela (colunas) VALUES (valores)");
+  const tname=m[1].toLowerCase();
+  if(!db[tname])db[tname]={cols:m[2].split(",").map(c=>c.trim()),rows:[]};
+  const vals=m[3].split(",").map(v=>v.trim().replace(/^['"]|['"]$/g,""));
+  db[tname].rows.push(vals);
+}
+
+function execUpdate(stmt,db){
+  const m=stmt.match(/UPDATE\s+(\w+)\s+SET\s+(.+?)\s+WHERE\s+(.+)/is);
+  if(!m)throw new Error("UPDATE sem WHERE não é permitido! Sempre especifique quais linhas alterar.");
+  const tname=m[1].toLowerCase();
+  if(!db[tname])throw new Error(`Tabela '${tname}' não existe`);
+  const tbl=db[tname];
+  const sets=m[2].split(",").map(s=>{const[k,...v]=s.split("=");return{col:k.trim(),val:v.join("=").trim().replace(/^['"]|['"]$/g,"")};});
+  tbl.rows.forEach(row=>{
+    if(evalWhere(m[3],tbl.cols,row)){
+      sets.forEach(({col,val})=>{const ci=tbl.cols.findIndex(c=>c.toLowerCase()===col.toLowerCase());if(ci>=0)row[ci]=val;});
+    }
+  });
+}
+
+function execDelete(stmt,db){
+  const m=stmt.match(/DELETE\s+FROM\s+(\w+)\s+WHERE\s+(.+)/is);
+  if(!m)throw new Error("DELETE sem WHERE não é permitido! Sempre especifique quais linhas remover.");
+  const tname=m[1].toLowerCase();
+  if(!db[tname])throw new Error(`Tabela '${tname}' não existe`);
+  const tbl=db[tname];
+  tbl.rows=tbl.rows.filter(r=>!evalWhere(m[2],tbl.cols,r));
+}
+
+function execCreate(stmt,db){
+  const m=stmt.match(/CREATE\s+TABLE\s+(\w+)\s*\((.+)\)/is);
+  if(!m)throw new Error("Sintaxe CREATE TABLE inválida");
+  const tname=m[1].toLowerCase();
+  const colDefs=m[2].split(",").map(c=>{const parts=c.trim().split(/\s+/);return parts[0];});
+  db[tname]={cols:colDefs,rows:[]};
+}
+
+function answerQuiz(i){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  const step=MODS[curMod].steps[curStep];
+  const ok=i===step.correct;
+  document.getElementById("qo"+i).classList.add(ok?"correct":"wrong");
+  if(!ok)document.getElementById("qo"+step.correct).classList.add("correct");
+  document.querySelectorAll(".qopt").forEach(b=>b.disabled=true);
+  const fb=document.getElementById("qfb");
+  fb.textContent=ok?step.ok:step.err;
+  fb.className="qfb show "+(ok?"ok":"err");
+  if(ok){xp+=20;renderProgress();}
+  document.getElementById("nbtn").style.display="inline-flex";
+}
+
+function nextStep(){
+  modProg[curMod]=Math.max(modProg[curMod],curStep+1);
+  xp+=10;
+  if(curStep<MODS[curMod].steps.length-1){curStep++;}
+  else{
+    completed.add(curMod);modProg[curMod]=MODS[curMod].steps.length;
+    if(curMod<MODS.length-1){curMod++;curStep=0;}
+    else{showCongrats();return;}
+  }
+  renderStep();window.scrollTo(0,0);
+}
+
+function prevStep(){
+  if(curStep>0)curStep--;
+  else if(curMod>0){curMod--;curStep=MODS[curMod].steps.length-1;}
+  renderStep();window.scrollTo(0,0);
+}
+
+function goMod(idx){
+  const locked=idx>0&&!completed.has(idx-1)&&idx!==curMod&&!completed.has(idx);
+  if(locked)return;
+  curMod=idx;curStep=0;renderStep();window.scrollTo(0,0);
+}
+
+function showCongrats(){
+  renderMods();
+  document.getElementById("pbfill").style.width="100%";
+  document.getElementById("xpp").textContent=xp+" XP";
+  document.getElementById("pglbl").textContent="🎉 Curso concluído!";
+  document.getElementById("lesson").innerHTML=`
+<div class="congrats">
+  <div class="tr">🏆</div>
+  <h2>Parabéns! Curso de SQL concluído!</h2>
+  <p>Você aprendeu os fundamentos de banco de dados com SQLite: consultas, filtros, funções de agregação, inserção, atualização e criação de tabelas.</p>
+  <div class="xpfin">${xp} XP ganhos!</div>
+  <div class="badge-grid">
+    <div class="badge-i">🗄️ O que é SQL?</div>
+    <div class="badge-i">🔍 SELECT</div>
+    <div class="badge-i">🔧 WHERE Avançado</div>
+    <div class="badge-i">ƒ Funções SQL</div>
+    <div class="badge-i">✏️ INSERT e UPDATE</div>
+    <div class="badge-i">🗑️ DELETE e CREATE</div>
+  </div>
+  <p><b>Próximos passos:</b> pratique no DB Browser for SQLite, conecte Python com SQLite usando a biblioteca sqlite3 e crie seu primeiro sistema!</p>
+  <div style="margin-top:1.5rem;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <a href="https://sqlitebrowser.org/dl/" target="_blank" style="background:#185FA5;color:#fff;text-decoration:none;padding:10px 20px;border-radius:7px;font-weight:600;font-size:14px;">Baixar DB Browser ↗</a>
+    <button onclick="curMod=0;curStep=0;xp=0;completed.clear();modProg.fill(0);renderStep();" style="border:0.5px solid rgba(0,0,0,0.22);border-radius:7px;padding:10px 20px;font-size:14px;cursor:pointer;background:#fff;font-family:system-ui">Recomeçar o curso</button>
+  </div>
+</div>`;
+}
+
+renderStep();
+</script>
+</body>
+</html>
